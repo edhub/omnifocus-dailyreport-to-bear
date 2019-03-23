@@ -22,3 +22,17 @@ In OmniFocus -> Help -> Open Script Folder. Drop the script in.
 OmniFocus -> View -> Customize Toolbar.  Find the script action, add it to the toolbar.
 
 Click the icon. Your report is now finished!
+
+## Configurations
+There are some configurations available:
+
+```
+    keepNotes: true, // Keeps notes, or not.
+    dateLocale: "en-US", // Use zh-CN for Chinese
+    compactViewMode: false, // If ture, there's no empty line between entries.
+```
+
+How to update configurations:
+1. Open DailyReport.scpt with Script Editor.
+2. Find Configuration area.
+3. Change the values.
