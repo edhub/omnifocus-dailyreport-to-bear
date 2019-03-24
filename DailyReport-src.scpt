@@ -12,7 +12,12 @@ yesterday.setHours(0, 0, 0);
 let cfg = {
     keepNotes: true, // Keeps notes, or not.
     dateLocale: "en-US", // Use zh-CN for Chinese
-    compactViewMode: false, // If ture, there's no empty line between entries.
+    compactViewMode: true, // If ture, there's no empty line between entries.
+    flaggedTaskMarker: " 🚩", // A marker followed after the name of the task.
+
+    groupTasks: true, // Show task groups: top level folder or project.
+    rootFolderMarker: " 📂", // A marker followed after the name of the top level folder name.
+    rootProjectMarker: " 💼", // A marker followed after the name of the top level project name.
 
     dateBegin: yesterday,
     dateEnd: today,
@@ -33,8 +38,9 @@ let noteBody = buildBearNoteBody();
 saveToBear(noteTitle, noteTags, noteBody);
 
 function getCompletedTasks() {
-    let omniDoc = Application('OmniFocus').defaultDocument;
-    return omniDoc.flattenedTasks.whose({
+    let ofDocument = Application('OmniFocus').defaultDocument;
+    let rootDocumentId = ofDocument.id();
+    return ofDocument.flattenedTasks.whose({
         _and: [
             { completed: true },
             { completionDate: { _greaterThan: cfg.dateBegin } },
@@ -45,22 +51,41 @@ function getCompletedTasks() {
             name: task.name(),
             note: task.note().trim(),
             flagged: task.flagged(),
+            rootContainer: findRootContainer(task, rootDocumentId),
         };
     });
 }
 
+function findRootContainer(task, rootDocumentId) {
+    var folder = task.containingProject().folder();
+    if (!folder) {
+        return task.containingProject().name() + cfg.rootProjectMarker;
+    }
+    while (folder.container.id() != rootDocumentId) {
+        folder = folder.container();
+    }
+    return folder.name() + cfg.rootFolderMarker;
+}
+
 function buildBearNoteBody() {
     let tasks = getCompletedTasks();
-    let count = tasks.length;
     var description = "";
-    for (i = 0; i < count; i++) {
-        description += buildDescriptionForATask(tasks[i]);
-    }
+    var rootContainer = "";
+
+    tasks.forEach(task => {
+        if (rootContainer != task.rootContainer) {
+            rootContainer = task.rootContainer;
+            description += `\n## ${rootContainer}\n`;
+        }
+
+        description += buildDescriptionForATask(task);
+    });
+
     return description;
 }
 
 function buildDescriptionForATask(task) {
-    var description = `+ ${task.name}! ${task.flagged?' 🚩':''}\n`;
+    var description = `+ ${task.name}${task.flagged ? cfg.flaggedTaskMarker : ''}\n`;
     if (cfg.keepNotes && task.note != "") {
         description += `> ${task.note.replace(/\n\n/g,'\n').replace(/\n/g,'\n> ')}\n`;
     }
@@ -73,7 +98,7 @@ function buildDescriptionForATask(task) {
 function saveToBear(title, tags, body) {
     let se = Application('System Events');
     se.includeStandardAdditions = true;
-    let tagsAndBody = tags + "\n\n" + body;
+    let tagsAndBody = tags + "\n" + body;
     let xcmd = `bear://x-callback-url/create?title=${encodeURIComponent(title)}&text=${encodeURIComponent(tagsAndBody)}`;
     se.openLocation(xcmd);
 }
