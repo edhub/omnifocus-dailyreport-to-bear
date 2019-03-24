@@ -29,7 +29,12 @@ There are some configurations available:
 ```
     keepNotes: true, // Keeps notes, or not.
     dateLocale: "en-US", // Use zh-CN for Chinese
-    compactViewMode: false, // If ture, there's no empty line between entries.
+    compactViewMode: true, // If ture, there's no empty line between entries.
+    flaggedTaskMarker: " 🚩", // A marker followed after the name of the task.
+
+    groupTasks: true, // Show task groups: top level folder or project.
+    rootFolderMarker: " 📂", // A marker followed after the name of the top level folder name.
+    rootProjectMarker: " 💼", // A marker followed after the name of the top level project name.
 ```
 
 How to update configurations:
